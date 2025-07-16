@@ -238,4 +238,11 @@ $RECYCLE.BIN/
 # For example:
 # data/
 # output/
-# results/ 
+# results/
+
+# Make It SuperHeavy specific
+outputs/
+*.jpg
+*.png
+*.jpeg
+result_*.jpg 

@@ -1,27 +1,30 @@
 import time
 import threading
 import sys
+import argparse
 from orchestrator import TaskOrchestrator
+from config_utils import check_required_env_vars
 
 class OrchestratorCLI:
-    def __init__(self):
-        self.orchestrator = TaskOrchestrator()
+    def __init__(self, agent_model=None, no_save=False, output_dir='outputs'):
+        self.orchestrator = TaskOrchestrator(agent_model=agent_model)
         self.start_time = None
         self.running = False
         
-        # Extract model name for display
-        model_full = self.orchestrator.config['openrouter']['model']
-        # Extract model name (e.g., "google/gemini-2.5-flash-preview-05-20" -> "GEMINI-2.5-FLASH")
-        if '/' in model_full:
-            model_name = model_full.split('/')[-1]
+        # Configure output settings
+        if no_save:
+            self.orchestrator.config['output']['auto_save'] = False
         else:
-            model_name = model_full
+            self.orchestrator.config['output']['auto_save'] = True
+            self.orchestrator.config['output']['directory'] = output_dir
         
-        # Clean up model name for display
-        model_parts = model_name.split('-')
-        # Take first 3 parts for cleaner display (e.g., gemini-2.5-flash)
-        clean_name = '-'.join(model_parts[:3]) if len(model_parts) >= 3 else model_name
-        self.model_display = clean_name.upper() + " HEAVY"
+        # Get current model configuration
+        config = self.orchestrator.get_current_config()
+        orchestrator_model = config['orchestrator_model']
+        agent_model = config['agent_model']
+        
+        # Extract display name from orchestrator model
+        self.model_display = f"KIMI-K2 HEAVY (Agents: {agent_model.upper().replace('-', ' ')})"
         
     def clear_screen(self):
         """Properly clear the entire screen"""
@@ -141,12 +144,28 @@ class OrchestratorCLI:
         """Run interactive CLI session"""
         print("Multi-Agent Orchestrator")
         print(f"Configured for {self.orchestrator.num_agents} parallel agents")
+        
+        config = self.orchestrator.get_current_config()
+        print(f"Orchestrator Model: {config['orchestrator_model']}")
+        print(f"Agent Model: {config['agent_model']}")
+        print(f"Available Agent Models: {', '.join(self.orchestrator.get_available_models())}")
+        
         print("Type 'quit', 'exit', or 'bye' to exit")
+        print("Type 'switch <model>' to change agent model")
+        print("Type 'models' to see available models")
+        
+        # Show output settings
+        auto_save = self.orchestrator.config.get('output', {}).get('auto_save', False)
+        output_dir = self.orchestrator.config.get('output', {}).get('directory', 'outputs')
+        if auto_save:
+            print(f"Auto-save enabled: outputs → {output_dir}/")
+        else:
+            print("Auto-save disabled")
         print("-" * 50)
         
         try:
             orchestrator_config = self.orchestrator.config['openrouter']
-            print(f"Using model: {orchestrator_config['model']}")
+            print(f"Using OpenRouter with API key configured")
             print("Orchestrator initialized successfully!")
             print("Note: Make sure to set your OpenRouter API key in config.yaml")
             print("-" * 50)
@@ -164,6 +183,24 @@ class OrchestratorCLI:
                 if user_input.lower() in ['quit', 'exit', 'bye']:
                     print("Goodbye!")
                     break
+                
+                if user_input.lower() == 'models':
+                    print("\nAvailable Agent Models:")
+                    for model in self.orchestrator.get_available_models():
+                        current = " (current)" if model == self.orchestrator.agent_model else ""
+                        print(f"  - {model}{current}")
+                    continue
+                
+                if user_input.lower().startswith('switch '):
+                    model_name = user_input[7:].strip()
+                    try:
+                        self.orchestrator.set_agent_model(model_name)
+                        print(f"Agent model switched to: {model_name}")
+                        # Update display name
+                        self.model_display = f"KIMI-K2 HEAVY (Agents: {model_name.upper()})"
+                    except ValueError as e:
+                        print(f"Error: {e}")
+                    continue
                 
                 if not user_input:
                     print("Please enter a question or command.")
@@ -187,7 +224,35 @@ class OrchestratorCLI:
 
 def main():
     """Main entry point for the orchestrator CLI"""
-    cli = OrchestratorCLI()
+    parser = argparse.ArgumentParser(description='Multi-Agent Orchestrator CLI')
+    parser.add_argument('--agent-model', 
+                       choices=['grok-4', 'kimi-k2', 'o3', 'claude-sonnet-4'],
+                       help='Model to use for agents (orchestrator always uses kimi-k2)')
+    parser.add_argument('--list-models', action='store_true',
+                       help='List available models and exit')
+    parser.add_argument('--no-save', action='store_true',
+                       help='Disable auto-save to markdown file')
+    parser.add_argument('--output-dir', default='outputs',
+                       help='Directory to save output files (default: outputs)')
+    
+    args = parser.parse_args()
+    
+    # Check required environment variables
+    if not check_required_env_vars():
+        return 1
+    
+    if args.list_models:
+        from model_factory import ModelFactory
+        factory = ModelFactory()
+        print("Available models:")
+        for model_key, config in factory.get_available_models().items():
+            print(f"  {model_key}: {config['display_name']}")
+            print(f"    Context: {config['context_window']} tokens")
+            print(f"    Recommended for: {', '.join(config['recommended_for'])}")
+            print()
+        return
+    
+    cli = OrchestratorCLI(agent_model=args.agent_model, no_save=args.no_save, output_dir=args.output_dir)
     cli.interactive_mode()
 
 if __name__ == "__main__":

@@ -1,21 +1,33 @@
 import json
-import yaml
 import time
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Dict, Any
 from agent import OpenRouterAgent
+from model_factory import ModelFactory, ModelAwareAgent
+from config_utils import load_config
 
 class TaskOrchestrator:
-    def __init__(self, config_path="config.yaml", silent=False):
+    def __init__(self, config_path="config.yaml", silent=False, agent_model=None):
         # Load configuration
-        with open(config_path, 'r') as f:
-            self.config = yaml.safe_load(f)
+        self.config = load_config(config_path)
         
         self.num_agents = self.config['orchestrator']['parallel_agents']
         self.task_timeout = self.config['orchestrator']['task_timeout']
         self.aggregation_strategy = self.config['orchestrator']['aggregation_strategy']
         self.silent = silent
+        
+        # Initialize model factory
+        self.model_factory = ModelFactory(config_path)
+        
+        # Set orchestrator model (fixed as kimi-k2 per requirements)
+        self.orchestrator_model = self.config['models']['orchestrator']['model_key']
+        
+        # Set agent model (can be overridden, defaults to config)
+        if agent_model:
+            self.agent_model = agent_model
+        else:
+            self.agent_model = self.config['models']['default_agent']['model_key']
         
         # Track agent progress
         self.agent_progress = {}
@@ -25,8 +37,8 @@ class TaskOrchestrator:
     def decompose_task(self, user_input: str, num_agents: int) -> List[str]:
         """Use AI to dynamically generate different questions based on user input"""
         
-        # Create question generation agent
-        question_agent = OpenRouterAgent(silent=True)
+        # Create question generation agent using orchestrator model (kimi-k2)
+        question_agent = ModelAwareAgent(self.orchestrator_model, silent=True)
         
         # Get question generation prompt from config
         prompt_template = self.config['orchestrator']['question_generation_prompt']
@@ -76,8 +88,8 @@ class TaskOrchestrator:
         try:
             self.update_agent_progress(agent_id, "PROCESSING...")
             
-            # Use simple agent like in main.py
-            agent = OpenRouterAgent(silent=True)
+            # Use model-aware agent with configured model
+            agent = ModelAwareAgent(self.agent_model, silent=True)
             
             start_time = time.time()
             response = agent.run(subtask)
@@ -127,8 +139,8 @@ class TaskOrchestrator:
         if len(responses) == 1:
             return responses[0]
         
-        # Create synthesis agent to combine all responses
-        synthesis_agent = OpenRouterAgent(silent=True)
+        # Create synthesis agent to combine all responses using orchestrator model (kimi-k2)
+        synthesis_agent = ModelAwareAgent(self.orchestrator_model, silent=True)
         
         # Build agent responses section
         agent_responses_text = ""
@@ -166,6 +178,24 @@ class TaskOrchestrator:
         """Get current progress status for all agents"""
         with self.progress_lock:
             return self.agent_progress.copy()
+    
+    def get_available_models(self) -> List[str]:
+        """Get list of available models for agents"""
+        return self.model_factory.get_agent_models()
+    
+    def get_current_config(self) -> Dict[str, str]:
+        """Get current model configuration"""
+        return {
+            "orchestrator_model": self.orchestrator_model,
+            "agent_model": self.agent_model
+        }
+    
+    def set_agent_model(self, model_key: str):
+        """Set the model for agents"""
+        available_models = self.get_available_models()
+        if model_key not in available_models:
+            raise ValueError(f"Model {model_key} not available. Available models: {available_models}")
+        self.agent_model = model_key
     
     def orchestrate(self, user_input: str):
         """
@@ -214,4 +244,28 @@ class TaskOrchestrator:
         # Aggregate results
         final_result = self.aggregate_results(agent_results)
         
+        # Auto-save to markdown file if enabled
+        if self.config.get('output', {}).get('auto_save', False):
+            self._save_output_to_file(user_input, final_result)
+        
         return final_result
+    
+    def _save_output_to_file(self, query, result):
+        """Save output to markdown file"""
+        try:
+            from tools.write_output_tool import WriteOutputTool
+            
+            # Create write tool
+            write_tool = WriteOutputTool(self.config)
+            
+            # Save output
+            save_result = write_tool.execute(query, result)
+            
+            if save_result.get('success') and not self.silent:
+                print(f"💾 Output saved to: {save_result['filepath']}")
+            elif not save_result.get('success') and not self.silent:
+                print(f"⚠️  Failed to save output: {save_result.get('error')}")
+                
+        except Exception as e:
+            if not self.silent:
+                print(f"⚠️  Error saving output: {str(e)}")
