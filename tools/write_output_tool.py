@@ -7,16 +7,19 @@ class WriteOutputTool(BaseTool):
     """Tool for writing orchestrator output to markdown files"""
     
     def __init__(self, config):
-        super().__init__(config)
+        super().__init__()
         self.output_dir = config.get('output', {}).get('directory', 'outputs')
         
-    def get_name(self):
+    @property
+    def name(self) -> str:
         return "write_output"
     
-    def get_description(self):
+    @property
+    def description(self) -> str:
         return "Write orchestrator output to a markdown file while displaying in terminal"
     
-    def get_parameters(self):
+    @property
+    def parameters(self) -> dict:
         return {
             "type": "object",
             "properties": {
