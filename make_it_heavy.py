@@ -22,10 +22,12 @@ class OrchestratorCLI:
         # Get current model configuration
         config = self.orchestrator.get_current_config()
         orchestrator_model = config['orchestrator_model']
+        synthesis_model = config['synthesis_model']
         agent_model = config['agent_model']
 
-        # Extract display name from orchestrator model
-        self.model_display = f"LETS GO SUPERHEAVY (Agents: {agent_model.upper().replace('-', ' ')})"
+        # Extract display name showing synthesis model
+        synthesis_display = synthesis_model.upper().replace('-', ' ').replace('.', ' ')
+        self.model_display = f"SUPERHEAVY (Agents: {agent_model.upper().replace('-', ' ')} | Synthesis: {synthesis_display})"
 
     def clear_screen(self):
         """Properly clear the entire screen"""
@@ -149,6 +151,7 @@ class OrchestratorCLI:
 
         config = self.orchestrator.get_current_config()
         print(f"Orchestrator Model: {config['orchestrator_model']}")
+        print(f"Synthesis Model: {config['synthesis_model']}")
         print(f"Agent Model: {config['agent_model']}")
         print(
             f"Available Agent Models: {', '.join(self.orchestrator.get_available_models())}")

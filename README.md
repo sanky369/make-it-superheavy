@@ -111,12 +111,12 @@ uv run make_it_heavy.py --list-models
 1. **🎯 AI Question Generation**: Kimi K2 creates 4 specialized research questions from your query
 2. **🔀 Parallel Intelligence**: Runs 4 agents simultaneously with your chosen AI model
 3. **⚡ Live Progress**: Shows real-time agent status with visual progress bars
-4. **🔄 Intelligent Synthesis**: Kimi K2 combines all perspectives into one comprehensive answer
+4. **🔄 Advanced Synthesis**: Gemini 2.5 Pro combines all perspectives into one comprehensive answer (up to 65k tokens)
 5. **📝 Auto-Save**: Automatically saves results to formatted markdown files
 
 **Interactive commands:**
 - `models` - List available agent models
-- `switch grok-4` - Switch agent model (orchestrator stays Kimi K2)
+- `switch grok-4` - Switch agent model (orchestrator stays Kimi K2, synthesis stays Gemini 2.5 Pro)
 - `quit` - Exit the program
 
 **Example Flow:**
@@ -130,7 +130,7 @@ AI Generated Questions (by Kimi K2):
 - Agent 4: "Verify and cross-check passive income success rates and requirements"
 
 Agents (using Grok-4): Execute specialized research in parallel
-Synthesis (by Kimi K2): Combines all perspectives into comprehensive guide
+Synthesis (by Gemini 2.5 Pro): Combines all perspectives into comprehensive guide (up to 65k tokens)
 Output: Saved to outputs/20240115_143025_Complete_Passive_Income.md
 
 Result: Grok heavy-style comprehensive analysis with auto-saved markdown file
@@ -142,19 +142,21 @@ Result: Grok heavy-style comprehensive analysis with auto-saved markdown file
 
 **Make It SuperHeavy** uses a sophisticated multi-model approach:
 
-- **Orchestrator**: Always uses **Kimi K2** (128k context, optimized for orchestration)
-- **Agents**: Choose from **Grok-4**, **Kimi K2**, **OpenAI o3**, or **Claude Sonnet 4**
+- **Orchestrator**: Always uses **Kimi K2** (128k context, optimized for question generation)
+- **Synthesis**: Always uses **Gemini 2.5 Pro** (1M context, 65k output, optimized for large-scale synthesis)
+- **Agents**: Choose from **Grok-4**, **Kimi K2**, **OpenAI o3**, **Claude Sonnet 4**, or **Gemini 2.5 Pro**
 - **Model Factory**: Unified interface for all AI providers
-- **Dynamic Switching**: Change models during interactive sessions
+- **Dynamic Switching**: Change agent models during interactive sessions
 
 ### Available Models
 
-| Model | Provider | Context Window | Recommended For |
-|-------|----------|----------------|-----------------|
-| **Kimi K2** | OpenRouter | 128,000 tokens | Orchestration, Research, Analysis |
-| **Grok-4** | OpenRouter | 256,000 tokens | Reasoning, Coding, Analysis |
-| **OpenAI o3** | OpenRouter | 200,000 tokens | Reasoning, Math, Coding |
-| **Claude Sonnet 4** | OpenRouter | 200,000 tokens | Coding, Reasoning, Analysis |
+| Model | Provider | Context Window | Max Output | Recommended For |
+|-------|----------|----------------|------------|-----------------|
+| **Kimi K2** | OpenRouter | 128,000 tokens | ~8k tokens | Orchestration, Research, Analysis |
+| **Grok-4** | OpenRouter | 256,000 tokens | ~8k tokens | Reasoning, Coding, Analysis |
+| **OpenAI o3** | OpenRouter | 200,000 tokens | ~8k tokens | Reasoning, Math, Coding |
+| **Claude Sonnet 4** | OpenRouter | 200,000 tokens | ~8k tokens | Coding, Reasoning, Analysis |
+| **Gemini 2.5 Pro** | OpenRouter | 1,048,576 tokens | 65k tokens | **Synthesis, Large Context Analysis** |
 
 ### Orchestration Flow
 
@@ -167,11 +169,11 @@ graph TD
     D --> F[Agent 2: Analysis] 
     D --> G[Agent 3: Alternatives]
     D --> H[Agent 4: Verification]
-    E --> I[Synthesis Agent - Kimi K2]
+    E --> I[Synthesis Agent - Gemini 2.5 Pro]
     F --> I
     G --> I
     H --> I
-    I --> J[Comprehensive Final Answer]
+    I --> J[Comprehensive Final Answer - Up to 65k tokens]
     J --> K[Auto-Save to Markdown]
 ```
 

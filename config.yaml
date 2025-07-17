@@ -10,9 +10,14 @@ openrouter:
 
 # Model configurations for multi-model support
 models:
-  # Orchestrator model (fixed as kimi-k2 per requirements)
+  # Orchestrator model (for question generation)
   orchestrator:
     model_key: "kimi-k2"
+    
+  # Synthesis model (for combining agent results - large context window)
+  synthesis:
+    model_key: "gemini-2.5-pro"
+    max_tokens: 65000  # Maximum output tokens for comprehensive synthesis
     
   # Default model for agents (can be overridden)
   default_agent:
@@ -24,6 +29,7 @@ models:
     - "kimi-k2" 
     - "o3"
     - "claude-sonnet-4"
+    - "gemini-2.5-pro"
 
 # System prompt for the agent
 system_prompt: |

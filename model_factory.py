@@ -26,7 +26,7 @@ class BaseModelProvider(ABC):
         pass
     
     @abstractmethod
-    def call_llm(self, messages: List[Dict[str, Any]], tools: Optional[List[Dict]] = None) -> Any:
+    def call_llm(self, messages: List[Dict[str, Any]], tools: Optional[List[Dict]] = None, max_tokens: Optional[int] = None) -> Any:
         """Make API call to the model"""
         pass
     
@@ -50,7 +50,7 @@ class OpenRouterProvider(BaseModelProvider):
             api_key=self.config['openrouter']['api_key']
         )
     
-    def call_llm(self, messages: List[Dict[str, Any]], tools: Optional[List[Dict]] = None) -> Any:
+    def call_llm(self, messages: List[Dict[str, Any]], tools: Optional[List[Dict]] = None, max_tokens: Optional[int] = None) -> Any:
         """Make OpenRouter API call"""
         try:
             call_params = {
@@ -60,6 +60,9 @@ class OpenRouterProvider(BaseModelProvider):
             
             if tools:
                 call_params["tools"] = tools
+                
+            if max_tokens:
+                call_params["max_tokens"] = max_tokens
             
             response = self.client.chat.completions.create(**call_params)
             return response
@@ -106,6 +109,15 @@ class ModelFactory:
             "context_window": 200000,
             "supports_tools": True,
             "recommended_for": ["coding", "reasoning", "analysis"]
+        },
+        "gemini-2.5-pro": {
+            "provider": "openrouter",
+            "model_name": "google/gemini-2.5-pro",
+            "display_name": "Gemini 2.5 Pro",
+            "context_window": 1048576,
+            "max_output": 65536,
+            "supports_tools": False,
+            "recommended_for": ["synthesis", "large_context", "analysis"]
         }
     }
     
@@ -164,9 +176,9 @@ class ModelAwareAgent:
         self.tools = [tool.to_openrouter_schema() for tool in self.discovered_tools.values()]
         self.tool_mapping = {name: tool.execute for name, tool in self.discovered_tools.items()}
     
-    def call_llm(self, messages: List[Dict[str, Any]]) -> Any:
+    def call_llm(self, messages: List[Dict[str, Any]], max_tokens: Optional[int] = None) -> Any:
         """Make API call using the configured model provider"""
-        return self.provider.call_llm(messages, self.tools)
+        return self.provider.call_llm(messages, self.tools, max_tokens)
     
     def handle_tool_call(self, tool_call):
         """Handle a tool call and return the result message"""

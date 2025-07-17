@@ -139,8 +139,13 @@ class TaskOrchestrator:
         if len(responses) == 1:
             return responses[0]
         
-        # Create synthesis agent to combine all responses using orchestrator model (kimi-k2)
-        synthesis_agent = ModelAwareAgent(self.orchestrator_model, silent=True)
+        # Create synthesis agent using dedicated synthesis model (large context window)
+        synthesis_config = self.config.get('models', {}).get('synthesis', {})
+        synthesis_model = synthesis_config.get('model_key', self.orchestrator_model)
+        synthesis_agent = ModelAwareAgent(synthesis_model, silent=True)
+        
+        # Set max tokens for synthesis if configured
+        synthesis_max_tokens = synthesis_config.get('max_tokens', None)
         
         # Build agent responses section
         agent_responses_text = ""
@@ -158,9 +163,20 @@ class TaskOrchestrator:
         synthesis_agent.tools = []
         synthesis_agent.tool_mapping = {}
         
-        # Get the synthesized response
+        # Get the synthesized response with max tokens if configured
         try:
-            final_answer = synthesis_agent.run(synthesis_prompt)
+            if synthesis_max_tokens:
+                # For synthesis, we need to modify the agent to use max_tokens
+                # This is a limitation of the current agent architecture
+                # We'll need to call the LLM directly for synthesis
+                messages = [
+                    {"role": "system", "content": self.config['system_prompt']},
+                    {"role": "user", "content": synthesis_prompt}
+                ]
+                response = synthesis_agent.call_llm(messages, max_tokens=synthesis_max_tokens)
+                final_answer = response.choices[0].message.content
+            else:
+                final_answer = synthesis_agent.run(synthesis_prompt)
             return final_answer
         except Exception as e:
             # Log the error for debugging
@@ -185,8 +201,10 @@ class TaskOrchestrator:
     
     def get_current_config(self) -> Dict[str, str]:
         """Get current model configuration"""
+        synthesis_model = self.config.get('models', {}).get('synthesis', {}).get('model_key', self.orchestrator_model)
         return {
             "orchestrator_model": self.orchestrator_model,
+            "synthesis_model": synthesis_model,
             "agent_model": self.agent_model
         }
     

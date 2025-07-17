@@ -27,6 +27,7 @@ Auto-discovered tools that agents can use:
 - **grok-4** - 256k context, reasoning/coding
 - **o3** - 200k context, math/reasoning
 - **claude-sonnet-4** - 200k context, coding/analysis
+- **gemini-2.5-pro** (synthesis) - 1M context, 65k output, large-scale synthesis
 
 ## How It Works
 

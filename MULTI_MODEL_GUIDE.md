@@ -6,17 +6,19 @@ This guide explains how to use the expanded multi-model support in the Make It H
 
 The project now supports multiple AI models with the following architecture:
 
-- **Orchestrator**: Always uses **Kimi K2** (as per requirements)
-- **Agents**: Can use **Grok-4**, **Kimi K2**, **OpenAI o3**, or **Claude Sonnet 4**
+- **Orchestrator**: Always uses **Kimi K2** (for question generation)
+- **Synthesis**: Always uses **Gemini 2.5 Pro** (1M context, 65k output for large-scale synthesis)
+- **Agents**: Can use **Grok-4**, **Kimi K2**, **OpenAI o3**, **Claude Sonnet 4**, or **Gemini 2.5 Pro**
 
 ## Available Models
 
-| Model               | Provider   | Context Window | Recommended For                   |
-| ------------------- | ---------- | -------------- | --------------------------------- |
-| **kimi-k2**         | OpenRouter | 63,000 tokens  | Orchestration, Research, Analysis |
-| **grok-4**          | OpenRouter | 256,000 tokens | Reasoning, Coding, Analysis       |
-| **o3**              | OpenRouter | 200,000 tokens | Reasoning, Math, Coding           |
-| **claude-sonnet-4** | OpenRouter | 200,000 tokens | Coding, Reasoning, Analysis       |
+| Model               | Provider   | Context Window | Max Output | Recommended For                   |
+| ------------------- | ---------- | -------------- | ---------- | --------------------------------- |
+| **kimi-k2**         | OpenRouter | 128,000 tokens | ~8k tokens | Orchestration, Research, Analysis |
+| **grok-4**          | OpenRouter | 256,000 tokens | ~8k tokens | Reasoning, Coding, Analysis       |
+| **o3**              | OpenRouter | 200,000 tokens | ~8k tokens | Reasoning, Math, Coding           |
+| **claude-sonnet-4** | OpenRouter | 200,000 tokens | ~8k tokens | Coding, Reasoning, Analysis       |
+| **gemini-2.5-pro**  | OpenRouter | 1,048,576 tokens | 65k tokens | **Synthesis, Large Context Analysis** |
 
 ## Quick Start
 
@@ -149,6 +151,34 @@ class TaskOrchestrator:
     def get_available_models(self) -> List[str]
     def get_current_config(self) -> Dict[str, str]
     def set_agent_model(self, model_key: str)
+```
+
+## Advanced Synthesis Architecture
+
+### Large Context Synthesis
+
+The system now uses **Gemini 2.5 Pro** specifically for synthesis, providing:
+
+- **1,048,576 token context window** - Can process massive agent outputs
+- **65,536 token maximum output** - Generate comprehensive reports up to ~50 pages
+- **Advanced reasoning** - Superior synthesis of complex multi-agent results
+- **Cost optimization** - Only synthesis uses the large context model
+
+### Synthesis Flow
+
+1. **Question Generation**: Kimi K2 creates specialized questions
+2. **Agent Processing**: Your chosen model processes individual questions
+3. **Result Collection**: All agent outputs collected (up to 1M tokens total)
+4. **Advanced Synthesis**: Gemini 2.5 Pro combines results into comprehensive report (up to 65k tokens)
+
+### Configuration
+
+```yaml
+# config.yaml
+models:
+  synthesis:
+    model_key: "gemini-2.5-pro"
+    max_tokens: 65000  # Maximum output for synthesis
 ```
 
 ## Output Management
