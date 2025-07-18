@@ -105,6 +105,20 @@ uv run make_it_heavy.py --output-dir reports   # Custom output directory
 
 # List available models
 uv run make_it_heavy.py --list-models
+
+# Switch orchestrator model (interactive session)
+# 1. Start the program: uv run make_it_heavy.py
+# 2. Use interactive commands: switch-orchestrator gpt-4.1
+```
+
+### Interactive Commands (Inside the Running Program)
+```bash
+# After starting with: uv run make_it_heavy.py
+> models                          # List all available models
+> switch-orchestrator gpt-4.1     # Switch to GPT-4.1 for orchestration
+> switch grok-4                   # Switch to Grok-4 for agents
+> Your research question here...  # Ask your question
+> quit                           # Exit the program
 ```
 
 **How Make It SuperHeavy works:**
@@ -114,16 +128,28 @@ uv run make_it_heavy.py --list-models
 4. **🔄 Advanced Synthesis**: Gemini 2.5 Pro combines all perspectives into one comprehensive answer (up to 65k tokens)
 5. **📝 Auto-Save**: Automatically saves results to formatted markdown files
 
-**Interactive commands:**
-- `models` - List available agent models
-- `switch grok-4` - Switch agent model (orchestrator stays Kimi K2, synthesis stays Gemini 2.5 Pro)
+**Interactive commands (inside the running program):**
+- `models` - List available agent and orchestrator models
+- `switch grok-4` - Switch agent model
+- `switch-orchestrator gpt-4.1` - Switch orchestrator model (choose between kimi-k2 and gpt-4.1)
 - `quit` - Exit the program
 
-**Example Flow:**
-```
-User Query: "Complete Passive-Income Playbook"
+**Orchestrator Model Options:**
+- `kimi-k2` - 128k context, cost-effective, good for standard research
+- `gpt-4.1` - 1M context, advanced reasoning, excellent for complex questions
 
-AI Generated Questions (by Kimi K2):
+**Example Flow:**
+```bash
+# Step 1: Start the program
+uv run make_it_heavy.py
+
+# Step 2: Interactive session with orchestrator switching
+> switch-orchestrator gpt-4.1
+Orchestrator model switched to: gpt-4.1
+
+> Complete Passive-Income Playbook
+
+AI Generated Questions (by GPT-4.1):
 - Agent 1: "Research comprehensive passive income strategies and systems"
 - Agent 2: "Analyze beginner-friendly passive income methods with low startup costs"  
 - Agent 3: "Find alternative passive income approaches for different skill levels"
@@ -133,7 +159,7 @@ Agents (using Grok-4): Execute specialized research in parallel
 Synthesis (by Gemini 2.5 Pro): Combines all perspectives into comprehensive guide (up to 65k tokens)
 Output: Saved to outputs/20240115_143025_Complete_Passive_Income.md
 
-Result: Grok heavy-style comprehensive analysis with auto-saved markdown file
+Result: Professional-grade research report with dense, comprehensive analysis
 ```
 
 ## 🏗️ Architecture
@@ -142,11 +168,11 @@ Result: Grok heavy-style comprehensive analysis with auto-saved markdown file
 
 **Make It SuperHeavy** uses a sophisticated multi-model approach:
 
-- **Orchestrator**: Always uses **Kimi K2** (128k context, optimized for question generation)
+- **Orchestrator**: Choose from **Kimi K2** (128k context) or **GPT-4.1** (1M context) for question generation
 - **Synthesis**: Always uses **Gemini 2.5 Pro** (1M context, 65k output, optimized for large-scale synthesis)
-- **Agents**: Choose from **Grok-4**, **Kimi K2**, **OpenAI o3**, **Claude Sonnet 4**, or **Gemini 2.5 Pro**
+- **Agents**: Choose from **Grok-4**, **Kimi K2**, **OpenAI o3**, **Claude Sonnet 4**, **Gemini 2.5 Pro**, or **GPT-4.1**
 - **Model Factory**: Unified interface for all AI providers
-- **Dynamic Switching**: Change agent models during interactive sessions
+- **Dynamic Switching**: Change agent and orchestrator models during interactive sessions
 
 ### Available Models
 
@@ -157,6 +183,7 @@ Result: Grok heavy-style comprehensive analysis with auto-saved markdown file
 | **OpenAI o3** | OpenRouter | 200,000 tokens | ~8k tokens | Reasoning, Math, Coding |
 | **Claude Sonnet 4** | OpenRouter | 200,000 tokens | ~8k tokens | Coding, Reasoning, Analysis |
 | **Gemini 2.5 Pro** | OpenRouter | 1,048,576 tokens | 65k tokens | **Synthesis, Large Context Analysis** |
+| **GPT-4.1** | OpenRouter | 1,047,576 tokens | 32k tokens | **Orchestration, Reasoning, Instruction Following** |
 
 ### Orchestration Flow
 

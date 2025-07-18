@@ -118,6 +118,15 @@ class ModelFactory:
             "max_output": 65536,
             "supports_tools": False,
             "recommended_for": ["synthesis", "large_context", "analysis"]
+        },
+        "gpt-4.1": {
+            "provider": "openrouter",
+            "model_name": "openai/gpt-4.1",
+            "display_name": "GPT-4.1",
+            "context_window": 1047576,
+            "max_output": 32768,
+            "supports_tools": True,
+            "recommended_for": ["orchestration", "reasoning", "instruction_following"]
         }
     }
     

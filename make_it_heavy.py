@@ -158,6 +158,7 @@ class OrchestratorCLI:
 
         print("Type 'quit', 'exit', or 'bye' to exit")
         print("Type 'switch <model>' to change agent model")
+        print("Type 'switch-orchestrator <model>' to change orchestrator model")
         print("Type 'models' to see available models")
 
         # Show output settings
@@ -197,6 +198,11 @@ class OrchestratorCLI:
                     for model in self.orchestrator.get_available_models():
                         current = " (current)" if model == self.orchestrator.agent_model else ""
                         print(f"  - {model}{current}")
+                    
+                    print("\nAvailable Orchestrator Models:")
+                    for model in self.orchestrator.get_available_orchestrators():
+                        current = " (current)" if model == self.orchestrator.orchestrator_model else ""
+                        print(f"  - {model}{current}")
                     continue
 
                 if user_input.lower().startswith('switch '):
@@ -205,7 +211,22 @@ class OrchestratorCLI:
                         self.orchestrator.set_agent_model(model_name)
                         print(f"Agent model switched to: {model_name}")
                         # Update display name
-                        self.model_display = f"LETS GO SUPERHEAVY (Agents: {model_name.upper()})"
+                        config = self.orchestrator.get_current_config()
+                        synthesis_display = config['synthesis_model'].upper().replace('-', ' ').replace('.', ' ')
+                        self.model_display = f"SUPERHEAVY (Agents: {model_name.upper().replace('-', ' ')} | Synthesis: {synthesis_display})"
+                    except ValueError as e:
+                        print(f"Error: {e}")
+                    continue
+                
+                if user_input.lower().startswith('switch-orchestrator '):
+                    model_name = user_input[20:].strip()
+                    try:
+                        self.orchestrator.set_orchestrator_model(model_name)
+                        print(f"Orchestrator model switched to: {model_name}")
+                        # Update display name
+                        config = self.orchestrator.get_current_config()
+                        synthesis_display = config['synthesis_model'].upper().replace('-', ' ').replace('.', ' ')
+                        self.model_display = f"SUPERHEAVY (Agents: {config['agent_model'].upper().replace('-', ' ')} | Synthesis: {synthesis_display})"
                     except ValueError as e:
                         print(f"Error: {e}")
                     continue

@@ -215,6 +215,17 @@ class TaskOrchestrator:
             raise ValueError(f"Model {model_key} not available. Available models: {available_models}")
         self.agent_model = model_key
     
+    def get_available_orchestrators(self) -> List[str]:
+        """Get list of available orchestrator models"""
+        return self.config.get('models', {}).get('available_orchestrators', ['kimi-k2'])
+    
+    def set_orchestrator_model(self, model_key: str):
+        """Set the orchestrator model"""
+        available_orchestrators = self.get_available_orchestrators()
+        if model_key not in available_orchestrators:
+            raise ValueError(f"Orchestrator model {model_key} not available. Available orchestrators: {available_orchestrators}")
+        self.orchestrator_model = model_key
+    
     def orchestrate(self, user_input: str):
         """
         Main orchestration method.

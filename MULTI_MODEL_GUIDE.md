@@ -6,9 +6,9 @@ This guide explains how to use the expanded multi-model support in the Make It H
 
 The project now supports multiple AI models with the following architecture:
 
-- **Orchestrator**: Always uses **Kimi K2** (for question generation)
+- **Orchestrator**: Choose from **Kimi K2** (128k context) or **GPT-4.1** (1M context) for question generation
 - **Synthesis**: Always uses **Gemini 2.5 Pro** (1M context, 65k output for large-scale synthesis)
-- **Agents**: Can use **Grok-4**, **Kimi K2**, **OpenAI o3**, **Claude Sonnet 4**, or **Gemini 2.5 Pro**
+- **Agents**: Can use **Grok-4**, **Kimi K2**, **OpenAI o3**, **Claude Sonnet 4**, **Gemini 2.5 Pro**, or **GPT-4.1**
 
 ## Available Models
 
@@ -19,6 +19,7 @@ The project now supports multiple AI models with the following architecture:
 | **o3**              | OpenRouter | 200,000 tokens | ~8k tokens | Reasoning, Math, Coding           |
 | **claude-sonnet-4** | OpenRouter | 200,000 tokens | ~8k tokens | Coding, Reasoning, Analysis       |
 | **gemini-2.5-pro**  | OpenRouter | 1,048,576 tokens | 65k tokens | **Synthesis, Large Context Analysis** |
+| **gpt-4.1**         | OpenRouter | 1,047,576 tokens | 32k tokens | **Orchestration, Reasoning, Instruction Following** |
 
 ## Quick Start
 
@@ -66,9 +67,51 @@ python make_it_heavy.py --list-models
 
 ### Multi-Agent Mode
 
-- `models` - List available agent models
-- `switch <model>` - Switch agent model (orchestrator stays kimi-k2)
+- `models` - List available agent and orchestrator models
+- `switch <model>` - Switch agent model
+- `switch-orchestrator <model>` - Switch orchestrator model (choose between kimi-k2 and gpt-4.1)
 - `quit`, `exit`, `bye` - Exit the program
+
+### Orchestrator Model Selection
+
+**Kimi K2** (Default)
+- 128k context window
+- Cost-effective for standard research
+- Good for straightforward question generation
+
+**GPT-4.1** (Advanced)
+- 1M context window (8x larger)
+- Superior instruction following (87.4% IFEval)
+- Excellent for complex, multi-layered questions
+- Better for nuanced research orchestration
+
+**Example Usage:**
+```bash
+# Step 1: Start the program
+uv run make_it_heavy.py
+
+# Step 2: Use interactive commands inside the running program
+> models
+Available Agent Models:
+  - grok-4
+  - kimi-k2 (current)
+  - o3
+  - claude-sonnet-4
+  - gemini-2.5-pro
+  - gpt-4.1
+
+Available Orchestrator Models:
+  - kimi-k2 (current)
+  - gpt-4.1
+
+> switch-orchestrator gpt-4.1
+Orchestrator model switched to: gpt-4.1
+
+> switch grok-4
+Agent model switched to: grok-4
+
+> Your research question here...
+```
 
 ## Configuration
 
@@ -77,9 +120,14 @@ python make_it_heavy.py --list-models
 ```yaml
 # Model configurations for multi-model support
 models:
-  # Orchestrator model (fixed as kimi-k2 per requirements)
+  # Orchestrator model (switchable between kimi-k2 and gpt-4.1)
   orchestrator:
-    model_key: "kimi-k2"
+    model_key: "kimi-k2"  # Options: "kimi-k2", "gpt-4.1"
+    
+  # Synthesis model (for combining agent results - large context window)
+  synthesis:
+    model_key: "gemini-2.5-pro"
+    max_tokens: 65000  # Maximum output tokens for comprehensive synthesis
 
   # Default model for agents (can be overridden)
   default_agent:
@@ -91,11 +139,60 @@ models:
     - "kimi-k2"
     - "o3"
     - "claude-sonnet-4"
+    - "gemini-2.5-pro"
+    - "gpt-4.1"
+    
+  # Available orchestrator models
+  available_orchestrators:
+    - "kimi-k2"
+    - "gpt-4.1"
 
 # Output settings
 output:
   directory: "outputs"
   auto_save: true
+```
+
+### Orchestrator Model Selection Guide
+
+**When to Use Kimi K2:**
+- Standard research questions
+- Cost-conscious applications
+- Straightforward question generation
+- Quick iterations and testing
+- Budget-friendly research projects
+
+**When to Use GPT-4.1:**
+- Complex, multi-layered research topics
+- Questions requiring nuanced understanding
+- Advanced reasoning and logic
+- High-stakes research projects
+- Superior instruction following needed
+- Long-context question generation
+
+**Performance Comparison:**
+
+| Feature | Kimi K2 | GPT-4.1 |
+|---------|---------|---------|
+| Context Window | 128k | 1M (8x larger) |
+| Instruction Following | Good | Superior (87.4% IFEval) |
+| Question Quality | Standard | Advanced |
+| Cost | Lower | Higher |
+| Speed | Faster | Moderate |
+| Reasoning | Good | Excellent |
+
+**Example Scenarios:**
+
+```bash
+# First start the program: uv run make_it_heavy.py
+
+# For standard research
+> switch-orchestrator kimi-k2
+Use for: "Best programming languages 2024", "Healthy meal plans", "Travel guides"
+
+# For complex analysis
+> switch-orchestrator gpt-4.1
+Use for: "Multi-modal AI architecture analysis", "Quantum computing applications", "Complex business strategies"
 ```
 
 ### Programmatic Usage

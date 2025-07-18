@@ -24,6 +24,7 @@ Auto-discovered tools that agents can use:
 
 ## Available Models
 - **kimi-k2** (default orchestrator) - 128k context, research/analysis
+- **gpt-4.1** (orchestrator option) - 1M context, 32k output, advanced reasoning
 - **grok-4** - 256k context, reasoning/coding
 - **o3** - 200k context, math/reasoning
 - **claude-sonnet-4** - 200k context, coding/analysis
